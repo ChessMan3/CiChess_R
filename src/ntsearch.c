@@ -208,6 +208,7 @@ Value search_NonPV(Pos *pos, Stack *ss, Value alpha, Depth depth, int cutNode)
   if (   !PvNode
       &&  eval >= beta
       && (ss->staticEval >= beta - 35 * (depth / ONE_PLY - 6) || depth >= 13 * ONE_PLY)
+      &&  pos->selDepth + 5 > pos->rootDepth / ONE_PLY
       &&  pos_non_pawn_material(pos_stm())) {
 
     assert(eval - beta >= 0);
@@ -395,6 +396,10 @@ moves_loop: // When in check search starts from here.
              &&  see_test(pos, move, 0))
       extension = ONE_PLY;
 
+    else if (   far_advanced_pawn_push(pos, move)
+             && pos_non_pawn_material(pos_stm()) <=  RookValueMg)
+      extension = ONE_PLY;
+
     // Calculate new depth for this move
     newDepth = depth - ONE_PLY + extension;
 
@@ -454,7 +459,7 @@ moves_loop: // When in check search starts from here.
       continue;
     }
 
-    if (move == ttMove && captureOrPromotion)
+    if (moveCount == 1 && captureOrPromotion && ttMove)
       ttCapture = 1;
 
     // Update the current move (this must be done after singular extension
